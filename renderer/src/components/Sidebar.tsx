@@ -11,6 +11,10 @@ import { logoutUser } from 'services/userService';
 import { getData, LS_KEYS } from 'utils/storage/localStorage';
 import { getToken } from 'utils/common/key';
 import { getEndpoint } from 'utils/common/apiUtil';
+import exportService from 'services/exportService';
+import electron from 'electron';
+
+const ipcRenderer = electron.ipcRenderer || false;
 
 export default function Sidebar() {
     const [logoutModalView, setLogoutModalView] = useState(false);
@@ -23,6 +27,8 @@ export default function Sidebar() {
     const [usage, SetUsage] = useState<string>(null);
     const subscription: Subscription = getData(LS_KEYS.SUBSCRIPTION);
     const [isOpen, setIsOpen] = useState(false);
+    const [message, setMessage] = React.useState('export data');
+
     useEffect(() => {
         const main = async () => {
             if (!isOpen) {
@@ -33,6 +39,13 @@ export default function Sidebar() {
             SetUsage(usage);
         };
         main();
+        ipcRenderer.on('export-started', (event, data) => {
+            setMessage(`export started at ${data}`);
+        });
+        return () => {
+            // unregister it
+            ipcRenderer.removeAllListeners('export-started');
+        };
     }, [isOpen]);
 
     const logout = async () => {
@@ -112,6 +125,12 @@ export default function Sidebar() {
                 >
                     support
                 </a>
+            </h5>
+            <h5
+                style={{ cursor: 'pointer', marginTop: '30px' }}
+                onClick={() => exportService.selectDirectory()}
+            >
+                {message}
             </h5>
             <>
                 <ConfirmLogout

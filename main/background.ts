@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import serve from 'electron-serve';
 import { createWindow } from './helpers';
 
@@ -29,4 +29,26 @@ if (isProd) {
 
 app.on('window-all-closed', () => {
     app.quit();
+});
+
+ipcMain.on('start-export', async (event, { url }) => {
+    event.sender.send('export-started', Date.now());
+});
+
+ipcMain.on('select-dir', async (event, arg) => {
+    let dialogWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            nodeIntegration: false,
+            enableRemoteModule: false,
+            contextIsolation: true,
+            sandbox: true,
+        },
+    });
+    console.log('S');
+    const result = await dialog.showOpenDialog(dialogWindow, {
+        properties: ['openDirectory'],
+    });
+    console.log('directories selected', result.filePaths);
 });
