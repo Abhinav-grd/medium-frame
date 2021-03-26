@@ -14,7 +14,7 @@ import { getEndpoint } from 'utils/common/apiUtil';
 import exportService from 'services/exportService';
 import electron from 'electron';
 
-const ipcRenderer = electron.ipcRenderer || false;
+const ipcRenderer = electron.ipcRenderer;
 
 export default function Sidebar() {
     const [logoutModalView, setLogoutModalView] = useState(false);
