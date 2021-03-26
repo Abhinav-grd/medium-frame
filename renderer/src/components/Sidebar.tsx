@@ -13,10 +13,13 @@ import { getToken } from 'utils/common/key';
 import { getEndpoint } from 'utils/common/apiUtil';
 import exportService from 'services/exportService';
 import electron from 'electron';
+import { file } from 'services/fileService';
 
 const ipcRenderer = electron.ipcRenderer;
-
-export default function Sidebar() {
+interface Props {
+    files: file[];
+}
+export default function Sidebar(props: Props) {
     const [logoutModalView, setLogoutModalView] = useState(false);
     function showLogoutModal() {
         setLogoutModalView(true);
@@ -27,7 +30,8 @@ export default function Sidebar() {
     const [usage, SetUsage] = useState<string>(null);
     const subscription: Subscription = getData(LS_KEYS.SUBSCRIPTION);
     const [isOpen, setIsOpen] = useState(false);
-    const [message, setMessage] = React.useState('export data');
+    const [message, setMessage] = useState('export data');
+    const [exportDir, setExportDir] = useState('');
 
     useEffect(() => {
         const main = async () => {
@@ -40,7 +44,13 @@ export default function Sidebar() {
         };
         main();
         ipcRenderer.on('export-started', (event, data) => {
-            setMessage(`export started at ${data}`);
+            setMessage(`export in progress`);
+        });
+        ipcRenderer.on('directory-selected', (event, data) => {
+            ipcRenderer.send('export-files', {
+                dir: exportDir,
+                files: props.files,
+            });
         });
         return () => {
             // unregister it

@@ -1,5 +1,7 @@
+import events from 'components/PhotoSwipe/events';
 import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import serve from 'electron-serve';
+import downloadManager, { RESPONSE_FORMAT } from 'services/downloadManager';
 import { createWindow } from './helpers';
 
 const isProd: boolean = process.env.NODE_ENV === 'production';
@@ -23,7 +25,7 @@ if (isProd) {
     } else {
         const port = process.argv[2];
         await mainWindow.loadURL(`http://localhost:${port}/`);
-        mainWindow.webContents.openDevTools();
+        // mainWindow.webContents.openDevTools();
     }
 })();
 
@@ -50,5 +52,13 @@ ipcMain.on('select-dir', async (event, arg) => {
     const result = await dialog.showOpenDialog(dialogWindow, {
         properties: ['openDirectory'],
     });
-    console.log('directories selected', result.filePaths);
+    const dir = result.filePaths;
+    dialogWindow.close();
+    event.sender.send('directory-selected', { dir });
+});
+
+ipcMain.on('export-files', async (events, { dir, files }) => {
+    for (let file of files) {
+        downloadManager.downloadFile(file, RESPONSE_FORMAT.STREAM);
+    }
 });

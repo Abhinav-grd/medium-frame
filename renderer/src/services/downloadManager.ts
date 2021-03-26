@@ -6,7 +6,10 @@ import { getFileExtension, runningInBrowser } from 'utils/common/utilFunctions';
 import CryptoWorker from 'utils/crypto/cryptoWorker';
 
 const TYPE_HEIC = 'heic';
-
+export enum RESPONSE_FORMAT {
+    STREAM,
+    OBJECT_URL,
+}
 class DownloadManager {
     private fileDownloads = new Map<number, Promise<string>>();
     private thumbnailDownloads = new Map<number, Promise<string>>();
@@ -59,7 +62,7 @@ class DownloadManager {
         try {
             if (!this.fileDownloads.get(file.id)) {
                 const download = (async () => {
-                    return await this.downloadFile(file);
+                    return (await this.downloadFile(file)) as string;
                 })();
                 this.fileDownloads.set(file.id, download);
             }
@@ -69,7 +72,7 @@ class DownloadManager {
         }
     };
 
-    private async downloadFile(file: file) {
+    async downloadFile(file: file, format = RESPONSE_FORMAT.OBJECT_URL) {
         const worker = await new CryptoWorker();
         const token = getToken();
         if (!token) {
@@ -164,7 +167,11 @@ class DownloadManager {
                     push();
                 },
             });
-            return URL.createObjectURL(await new Response(stream).blob());
+            if (format === RESPONSE_FORMAT.STREAM) {
+                return stream;
+            } else {
+                return URL.createObjectURL(await new Response(stream).blob());
+            }
         }
     }
 
