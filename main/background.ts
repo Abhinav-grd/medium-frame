@@ -57,8 +57,8 @@ ipcMain.on('select-dir', async (event, arg) => {
     event.sender.send('directory-selected', { dir });
 });
 
-ipcMain.on('export-files', async (events, { dir, files }) => {
-    for (let file of files) {
-        downloadManager.downloadFile(file, RESPONSE_FORMAT.STREAM);
-    }
-});
+// ipcMain.on('export-files', async (events, { dir, files }) => {
+//     for (let file of files) {
+//         downloadManager.downloadFile(file, RESPONSE_FORMAT.STREAM);
+//     }
+// });
